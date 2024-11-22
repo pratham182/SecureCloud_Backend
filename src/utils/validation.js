@@ -22,4 +22,9 @@ const validatePhoneNumber = (phoneNumber) => {
     return phonePattern.test(phoneNumber);
 };
 
-export { validateEmail, validateRequiredFields, validatePassword, validatePhoneNumber };
+const validateOTP = (otp) => {
+   
+    return /^\d{6}$/.test(otp);
+};
+
+export { validateEmail, validateRequiredFields, validatePassword, validatePhoneNumber,validateOTP };
