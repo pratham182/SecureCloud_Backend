@@ -60,7 +60,7 @@ const UserModel = (sequelize, DataTypes) => {
             defaultValue: false,
         },
         emailVerificationToken: {
-            type: DataTypes.STRING(6),
+            type: DataTypes.STRING(255),
             allowNull: true,
             defaultValue: null,
         },

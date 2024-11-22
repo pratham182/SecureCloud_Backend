@@ -45,7 +45,7 @@ const connectDB = async () => {
     try {
         await sequelize.authenticate();
         console.log(`\nPostgreSQL connected! DB HOST: ${process.env.PG_HOST}`);
-        await sequelize.sync({ force: false});
+        await sequelize.sync({ force: true});
     } catch (error) {
         console.error("PostgreSQL connection FAILED: ", error.message || error);
         process.exit(1);
