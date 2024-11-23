@@ -246,47 +246,65 @@ const PassportLogIn = asyncHandler(async (req, res, next) => {
     const validationChecks = [
         {
             isValid: !requiredFieldErrors,
-            error: new ApiError(400, requiredFieldErrors || "Email and password are required."),
+            error: requiredFieldErrors || "Email and password are required.",
         },
         {
             isValid: validateEmail(email),
-            error: new ApiError(400, "Invalid email format."),
+            error: "Invalid email format.",
         },
         {
             isValid: validatePassword(password),
-            error: new ApiError(400, "Password must be at least 6 characters long, include uppercase and lowercase letters, a number, and a special character."),
+            error: "Password must be at least 6 characters long, include uppercase and lowercase letters, a number, and a special character.",
         },
     ];
+
     for (const { isValid, error } of validationChecks) {
-        if (!isValid) throw error;
+        if (!isValid) throw new ApiError(400, error);
     }
 
     passport.authenticate('local', async (err, user, info) => {
+        console.log(user);
         if (err) {
-            return next(err);
+            console.error("Error during authentication:", err);
+            return next(new ApiError(500, "Authentication failed."));
         }
 
         if (!user) {
-            return res.status(401).json(new ApiResponse(401, {}, info || "Invalid login credentials."));
+            return res
+                .status(401)
+                .json(new ApiResponse(401, {}, info?.message || "Invalid login credentials."));
         }
 
-        const sanitizedUser = await User.findOne({
-            where: { email: user.email },
-            attributes: { exclude: ['password'] },
-        });
+        try {
+            const sanitizedUser = await User.findOne({
+                where: { email: user.email },
+                attributes: { exclude: ["password", "otpCode"] },
+            });
 
-        await new Promise((resolve, reject) => {
+            if (!sanitizedUser.otpVerified) {
+                return res
+                    .status(403)
+                    .json(new ApiResponse(403, {}, "Please verify your email using OTP."));
+            }
+
             req.login(sanitizedUser, (loginErr) => {
                 if (loginErr) {
-                    return reject(loginErr);
+                    console.error("Error during session creation:", loginErr);
+                    return next(new ApiError(500, "An error occurred during login."));
                 }
-                resolve();
-            });
-        });
 
-        return res.status(200).json(new ApiResponse(200, { user: sanitizedUser }, 'Login successful'));
+                return res
+                    .status(200)
+                    .json(new ApiResponse(200, { user: sanitizedUser }, "Login successful."));
+            });
+        } catch (error) {
+            console.error("Error during login process:", error);
+            return next(new ApiError(500, "An internal server error occurred."));
+        }
     })(req, res, next);
 });
+
+
 
 const PassportLogOut = asyncHandler(async (req, res) => {
     req.session.destroy((err) => {

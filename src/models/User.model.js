@@ -43,11 +43,6 @@ const UserModel = (sequelize, DataTypes) => {
             allowNull: false,
             defaultValue: false,
         },
-        isEmailVerified: {
-            type: DataTypes.BOOLEAN,
-            allowNull: false,
-            defaultValue: false,
-        },
         
         tokenExpiration: { 
             type: DataTypes.DATE,

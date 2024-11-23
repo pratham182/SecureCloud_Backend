@@ -35,7 +35,7 @@ passport.use(
                 return done(null, false, new ApiResponse(400, null, "Incorrect email or password"));
             }
 
-            if (!user.isEmailVerified) {
+            if (!user.otpVerified) {
                 return done(null, false, new ApiResponse(403, null, "Please verify your email to login."));
             }
 
@@ -43,5 +43,7 @@ passport.use(
         })
     )
 );
+
+
 
 export default passport;
